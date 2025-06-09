@@ -21,13 +21,17 @@ public class Symulacja {
     }
 
     public void inicjalizuj() {
-        // Rozdziel pierwsze kratki równo między rasy
-        int startX = 0;
-        int startY = 0;
-        for (RasaBase rasa : rasy) {
-            mapa[startX][startY].setOwnerRasaId(rasa.getId());
-            startX++;
-            startY++;
+        if (rasy.size() > 0) {
+            mapa[0][0].setOwnerRasaId(rasy.get(0).getId());
+        }
+        if (rasy.size() > 1) {
+            mapa[0][rozmiar - 1].setOwnerRasaId(rasy.get(1).getId());
+        }
+        if (rasy.size() > 2) {
+            mapa[rozmiar - 1][0].setOwnerRasaId(rasy.get(2).getId());
+        }
+        if (rasy.size() > 3) {
+            mapa[rozmiar - 1][rozmiar - 1].setOwnerRasaId(rasy.get(3).getId());
         }
     }
 
@@ -39,9 +43,28 @@ public class Symulacja {
             rasa.dodajJednostki(rasa.getProdukcja(), rasa.getProdukcja());
         }
 
-        // Próby przejęcia sąsiednich kratek
-        List<Kratka> doPrzejecia = new ArrayList<>();
+        // Krok 1: Zliczanie kratek posiadanych przez każdą rasę na początku tury
+        Map<Integer, Integer> posiadaneKratkiNaStartTury = new HashMap<>();
+        for (RasaBase rasa : rasy) {
+            posiadaneKratkiNaStartTury.put(rasa.getId(), 0); // Inicjalizacja licznika dla każdej rasy
+        }
 
+        for (int i = 0; i < rozmiar; i++) {
+            for (int j = 0; j < rozmiar; j++) {
+                int ownerId = mapa[i][j].getOwnerRasaId();
+                if (ownerId != -1) {
+                    posiadaneKratkiNaStartTury.put(ownerId, posiadaneKratkiNaStartTury.get(ownerId) + 1);
+                }
+            }
+        }
+
+        // Krok 2: Śledzenie nowych kratek przejętych w bieżącej turze
+        Map<Integer, Integer> nowoPrzejeteKratki = new HashMap<>();
+        for (RasaBase rasa : rasy) {
+            nowoPrzejeteKratki.put(rasa.getId(), 0); // Inicjalizacja licznika
+        }
+
+        // Próby przejęcia sąsiednich kratek
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
                 Kratka kratka = mapa[i][j];
@@ -52,10 +75,17 @@ public class Symulacja {
                     List<Kratka> sasiednie = znajdzSasiednie(i, j);
 
                     for (Kratka sasiad : sasiednie) {
+                        // Sprawdzamy, czy sasiad należy do innej rasy
                         if (sasiad.getOwnerRasaId() != owner) {
                             RasaBase obca = znajdzRase(sasiad.getOwnerRasaId());
+                            // Warunek do przejęcia
                             if (obca == null || rasa.sila() > obca.sila()) {
-                                sasiad.setOwnerRasaId(owner);
+                                // Krok 3: Ograniczenie przejmowania nowych kratek
+                                int limitPrzejec = posiadaneKratkiNaStartTury.get(owner) * 2;
+                                if (nowoPrzejeteKratki.get(owner) < limitPrzejec) {
+                                    sasiad.setOwnerRasaId(owner);
+                                    nowoPrzejeteKratki.put(owner, nowoPrzejeteKratki.get(owner) + 1);
+                                }
                             }
                         }
                     }

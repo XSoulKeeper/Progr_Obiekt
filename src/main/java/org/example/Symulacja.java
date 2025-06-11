@@ -3,6 +3,10 @@
 package org.example;
 import java.util.*;
 
+/**
+ * Główna klasa symulacji bitwy między rasami na planszy.
+ * Odpowiada za zarządzanie turą, rozgrywką i warunkami zwycięstwa.
+ */
 public class Symulacja {
     private Kratka[][] mapa;
     private int rozmiar;
@@ -10,6 +14,15 @@ public class Symulacja {
     private List<RasaBase> rasy;
     private Random random = new Random();
 
+
+    /**
+     * Konstruktor inicjalizujący planszę symulacji.
+     *
+     * @param rozmiar           Rozmiar planszy
+     * @param aktualnaTura      Początkowy numer tury
+     * @param rasy              Lista ras
+     * @param procentPrzeszkod  Procentowa szansa na pojawienie się przeszkody
+     */
     public Symulacja(int rozmiar, int aktualnaTura, List<RasaBase> rasy, int procentPrzeszkod) {
         this.rozmiar = rozmiar;
         this.aktualnaTura = aktualnaTura;
@@ -17,6 +30,7 @@ public class Symulacja {
         this.mapa = new Kratka[rozmiar][rozmiar];
         Random random = new Random();
 
+        // Inicjalizacja planszy - przeszkody lub puste pola
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
                 if (random.nextInt(100) < procentPrzeszkod) {
@@ -28,6 +42,10 @@ public class Symulacja {
         }
     }
 
+    /**
+     * Umieszcza początkowe jednostki ras w rogach planszy.
+     * Kolejność: lewy górny, prawy górny, lewy dolny, prawy dolny.
+     */
     public void inicjalizuj() {
         if (rasy.size() > 0) {
             int[] start1 = znajdzWolnaKratke(0, 0);
@@ -47,6 +65,13 @@ public class Symulacja {
         }
     }
 
+    /**
+     * Wyszukuje najbliższą wolną kratkę (bez przeszkody) używając BFS.
+     *
+     * @param x Początkowa współrzędna X
+     * @param y Początkowa współrzędna Y
+     * @return Tablica ze współrzędnymi [x,y] wolnej kratki
+     */
     private int[] znajdzWolnaKratke(int x, int y) {
         Queue<int[]> kolejka = new LinkedList<>();
         boolean[][] odwiedzone = new boolean[rozmiar][rozmiar];
@@ -62,6 +87,7 @@ public class Symulacja {
                 return new int[]{cx, cy};
             }
 
+            // Sprawdzanie 4 kierunków (góra, dół, lewo, prawo)
             int[][] kierunki = {{-1,0}, {1,0}, {0,-1}, {0,1}};
             for (int[] d : kierunki) {
                 int nx = cx + d[0];
@@ -75,6 +101,12 @@ public class Symulacja {
 
         return new int[]{x, y};
     }
+
+    /**
+     * Zlicza wszystkie przeszkody na planszy.
+     *
+     * @return Liczba przeszkód
+     */
     public int policzPrzeszkody(){
         int licznik = 0;
         for (int i = 0; i < rozmiar; i++) {
@@ -86,13 +118,22 @@ public class Symulacja {
         }
         return licznik;
     }
+
+    /**
+            * Przeprowadza pojedynczą turę symulacji:
+            * 1. Inkrementuje licznik tur
+     * 2. Dodaje nowe jednostki do każdej rasy
+     * 3. Rozszerza terytoria na podstawie siły ras
+     */
     public void tura() {
         aktualnaTura++;
 
+        // Dodawanie nowych jednostek każdej rasie
         for (RasaBase rasa : rasy) {
             rasa.dodajJednostki(rasa.getProdukcja(), rasa.getProdukcja());
         }
 
+        // Liczenie początkowego terytorium każdej rasy
         Map<Integer, Integer> posiadaneKratkiNaStartTury = new HashMap<>();
         for (RasaBase rasa : rasy) {
             posiadaneKratkiNaStartTury.put(rasa.getId(), 0);
@@ -107,11 +148,13 @@ public class Symulacja {
             }
         }
 
+        // Śledzenie nowo podbitych pól
         Map<Integer, Integer> nowoPrzejeteKratki = new HashMap<>();
         for (RasaBase rasa : rasy) {
             nowoPrzejeteKratki.put(rasa.getId(), 0);
         }
 
+        // Logika podboju terytorium
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
                 Kratka kratka = mapa[i][j];
@@ -138,18 +181,28 @@ public class Symulacja {
         }
     }
 
+    /**
+     * Sprawdza czy symulacja powinna się zakończyć.
+     *
+     * @return True jeśli koniec symulacji, False w przeciwnym wypadku
+     */
     public boolean czyKoniec() {
         if (!czyRasySaPolaczone()) {
-            return true;
+            return true;  // Rasy są całkowicie odseparowane
         }
         for (RasaBase rasa : rasy) {
             if (mozeSieRuszyc(rasa)) {
-                return false;
+                return false; // Przynajmniej jedna rasa może się jeszcze rozszerzać
             }
         }
-        return true;
+        return true; // Żadna rasa nie może już się rozszerzać
     }
 
+    /**
+     * Sprawdza czy terytoria różnych ras są ze sobą połączone.
+     *
+     * @return True jeśli przynajmniej dwie rasy mają połączone terytoria
+     */
     private boolean czyRasySaPolaczone() {
         Set<Integer> znalezioneRasy = new HashSet<>();
         boolean[][] odwiedzone = new boolean[rozmiar][rozmiar];
@@ -216,6 +269,12 @@ public class Symulacja {
         }
     }
 
+    /**
+     * Sprawdza czy rasa może podbić nowe terytorium.
+     *
+     * @param rasa Rasa do sprawdzenia
+     * @return True jeśli rasa może się rozszerzać, False w przeciwnym wypadku
+     */
     private boolean mozeSieRuszyc(RasaBase rasa) {
         int rasaId = rasa.getId();
 
@@ -231,9 +290,14 @@ public class Symulacja {
                 }
             }
         }
-        return false;
+        return false;  // Brak możliwości rozszerzenia
     }
 
+    /**
+     * Zwraca ID ras które wciąż posiadają przynajmniej jedno pole.
+     *
+     * @return Zbiór ID przetrwałych ras
+     */
     public Set<Integer> getZwyciezcy() {
         Set<Integer> zwyciezcy = new HashSet<>();
         for (int i = 0; i < rozmiar; i++) {
@@ -247,6 +311,12 @@ public class Symulacja {
         return zwyciezcy;
     }
 
+    /**
+     * Wyszukuje rasę po ID.
+     *
+     * @param id ID rasy do znalezienia
+     * @return Znaleziona rasa lub null jeśli nie istnieje
+     */
     private RasaBase znajdzRase(int id) {
         for (RasaBase rasa : rasy) {
             if (rasa.getId() == id) return rasa;
@@ -254,6 +324,13 @@ public class Symulacja {
         return null;
     }
 
+    /**
+     * Znajduje wszystkie sąsiednie kratki dla podanych współrzędnych.
+     *
+     * @param x Współrzędna X
+     * @param y Współrzędna Y
+     * @return Lista sąsiednich kratek
+     */
     private List<Kratka> znajdzSasiednie(int x, int y) {
         List<Kratka> lista = new ArrayList<>();
         int[][] kierunki = {{-1,0}, {1,0}, {0,-1}, {0,1}};
@@ -267,7 +344,9 @@ public class Symulacja {
         }
         return lista;
     }
-
+    /**
+     * @return Aktualny stan planszy
+     */
     public Kratka[][] getMapa() {
         return mapa;
     }

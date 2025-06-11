@@ -30,7 +30,7 @@ public class SymulacjaUI extends Application {
     // Nowe stałe dla ścieżek ikon
     private static final String APP_ICON_PATH = "app_icon.jpg";
     private static final String ERROR_ICON_PATH = "error.jpg";
-
+    private Label przeszkodyLabel = new Label("Przeszkoda:0");
 
     @Override
     public void start(Stage primaryStage) {
@@ -58,14 +58,16 @@ public class SymulacjaUI extends Application {
         TextField liczbaRasField = new TextField();
         TextField jednostkiField = new TextField();
         TextField rozmiarField = new TextField();
+        TextField przeszkodyField = new TextField();
         Button startButton = new Button("Start");
         Button fullscreenButton = new Button("Tryb Pełnoekranowy");
 
         liczbaRasField.setPromptText("Liczba ras (2-4)");
         jednostkiField.setPromptText("Jednostki (np. 100)");
         rozmiarField.setPromptText("Rozmiar mapy (np. 10)");
+        przeszkodyField.setPromptText(" Liczba przeszkód (np.8%)");
 
-        HBox controls = new HBox(10, liczbaRasField, jednostkiField, rozmiarField, startButton, fullscreenButton);
+        HBox controls = new HBox(10, liczbaRasField, jednostkiField, rozmiarField, przeszkodyField, startButton, fullscreenButton);
         controls.setStyle("-fx-alignment: center; -fx-padding: 10; -fx-background-color: #e0e0e0;");
         root.setTop(controls);
 
@@ -85,12 +87,14 @@ public class SymulacjaUI extends Application {
         startButton.setOnAction(e -> {
             int liczbaRas;
             int jednostki;
-            int rozmiarMapy; // Zmieniona nazwa zmiennej, aby uniknąć konfliktu z polem klasy 'rozmiar'
+            int rozmiarMapy;
+            int przeszkody;// Zmieniona nazwa zmiennej, aby uniknąć konfliktu z polem klasy 'rozmiar'
 
             try {
                 liczbaRas = Integer.parseInt(liczbaRasField.getText());
                 jednostki = Integer.parseInt(jednostkiField.getText());
                 rozmiarMapy = Integer.parseInt(rozmiarField.getText());
+                przeszkody = Integer.parseInt(przeszkodyField.getText());
 
                 // Walidacja danych wejściowych
                 if (liczbaRas < 2 || liczbaRas > 4 || jednostki <= 0 || rozmiarMapy <= 0) {
@@ -115,7 +119,7 @@ public class SymulacjaUI extends Application {
             strengthLabels.clear();
             raceIcons.clear();
             statsPanel.getChildren().clear(); // Clear existing stats from the panel
-
+            statsPanel.getChildren().add(przeszkodyLabel);
             // Initialize races and their UI components
             if (liczbaRas >= 1) {
                 Elfy elfy = new Elfy(0, jednostki, jednostki / 2, 3);
@@ -138,11 +142,18 @@ public class SymulacjaUI extends Application {
                 addRaceStatsToPanel(statsPanel, ludzie, "rycerz.jpg");
             }
 
-            symulacja = new Symulacja(rozmiar, 0, rasy); // Użyj 'this.rozmiar'
+            symulacja = new Symulacja(rozmiar, 0, rasy, przeszkody); // Użyj 'this.rozmiar'
             symulacja.inicjalizuj();
             drawMap();
             updateRaceStatistics(rasy); // Initial update of statistics
-
+            int przeszkodyCoun = 0;
+            for (int i = 0; i < rozmiar; i++) {
+                for (int j = 0; j < rozmiar; j++) {
+                    if(symulacja.getMapa()[i][j].isPrzeszkoda()){
+                        przeszkodyCoun++;
+                    }
+                }
+            }przeszkodyLabel.setText("Przeszkody"+przeszkodyCoun);
             // Zatrzymaj poprzedni timer, jeśli istnieje, aby uniknąć wielu symulacji jednocześnie
             if (currentTimer != null) {
                 currentTimer.cancel();
@@ -182,25 +193,36 @@ public class SymulacjaUI extends Application {
                                 }
                             }
 
-                            if (winner != null) {
-                                alert.setContentText("Symulacja zakończona! Zwyciężyła rasa: " + winner.getNazwa());
-
-                                // Dodaj ikonę zwycięskiej rasy do alertu
-                                String imagePath = raceImagePaths.get(winner.getId());
-                                if (imagePath != null) {
-                                    try {
-                                        Image winnerImage = new Image(imagePath, 80, 80, true, true); // Larger icon for the alert
-                                        ImageView winnerImageView = new ImageView(winnerImage);
-                                        alert.setGraphic(winnerImageView); // Ustaw ikonę jako grafikę alertu
-                                    } catch (Exception ex) {
-                                        System.err.println("Nie udało się załadować ikony zwycięzcy: " + imagePath);
-                                        // ex.printStackTrace();
+                            Set<Integer> zwyciezcyIds = symulacja.getZwyciezcy();
+                            StringBuilder wynik = new StringBuilder();
+                            for (int id : zwyciezcyIds) {
+                                for (RasaBase rasa : rasy) {
+                                    if (rasa.getId() == id) {
+                                        wynik.append(rasa.getNazwa()).append(", ");
                                     }
                                 }
-
-                            } else {
-                                alert.setContentText("Symulacja zakończona! Brak zwycięzcy.");
                             }
+                            if (wynik.length() > 0) {
+                                wynik.setLength(wynik.length() - 2); // usuń ostatni przecinek i spację
+                            }
+
+                            alert.setContentText("Symulacja zakończona! Zwycięzcy: " + (wynik.length() > 0 ? wynik.toString() : "Brak zwycięzców"));
+
+                            // Dodaj ikonę zwycięzcy (pierwszej rasy z listy zwycięzców)
+                            if (!zwyciezcyIds.isEmpty()) {
+                                int firstWinnerId = zwyciezcyIds.iterator().next();
+                                String imagePath = raceImagePaths.get(firstWinnerId);
+                                if (imagePath != null) {
+                                    try {
+                                        Image winnerImage = new Image(imagePath, 80, 80, true, true);
+                                        ImageView winnerImageView = new ImageView(winnerImage);
+                                        alert.setGraphic(winnerImageView);
+                                    } catch (Exception ex) {
+                                        System.err.println("Nie udało się załadować ikony zwycięzcy: " + imagePath);
+                                    }
+                                }
+                            }
+
                             alert.showAndWait();
                         });
                     }
@@ -296,13 +318,19 @@ public class SymulacjaUI extends Application {
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
                 Rectangle rect = new Rectangle(cellSize, cellSize);
-                int id = mapa[i][j].getOwnerRasaId();
-                rect.setFill(id >= 0 && id < kolory.length ? kolory[id] : Color.WHITE);
+                Kratka kratka = mapa[i][j];
+
+                if (kratka.isPrzeszkoda()) {
+                    rect.setFill(Color.PURPLE); // <-- TU kolor przeszkody
+
+                } else {
+                    int id = kratka.getOwnerRasaId();
+                    rect.setFill(id >= 0 && id < kolory.length ? kolory[id] : Color.WHITE);
+                }
+
                 grid.add(rect, j, i);
             }
         }
-        grid.setHalignment(grid, javafx.geometry.HPos.CENTER);
-        grid.setValignment(grid, javafx.geometry.VPos.CENTER);
     }
 
     // Nowa metoda do wyświetlania alertów o błędach

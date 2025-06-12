@@ -5,7 +5,7 @@ package org.example;
  * Klasa reprezentująca pojedynczą kratkę na planszy symulacji.
  * Przechowuje informacje o położeniu, właścicielu i typie kratki.
  */
-publi
+
 public class Kratka {
     private int x, y;                    // Współrzędne kratki na planszy
     private int ownerRasaId = -1;        // ID rasy właściciela (-1 oznacza brak właściciela)

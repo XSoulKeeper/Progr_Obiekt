@@ -16,7 +16,7 @@ Ten projekt to prosta symulacja podboju terytoriów, w której różne rasy walc
 
 Aby uruchomić aplikację z kodu źródłowego, potrzebujesz:
 * **Java Development Kit (JDK) 11 lub nowszy:** Projekt korzysta z JavaFX, które jest modularne od JDK 11.
-* **Maven lub Gradle (opcjonalnie, do zarządzania zależnościami):** Jeśli będziesz budować projekt samodzielnie.
+* **Gradle:** Jeśli będziesz budować projekt samodzielnie.
 
 Do uruchomienia pliku `.exe` potrzebujesz jedynie środowiska **Java Runtime Environment (JRE)** zgodnego z wersją JDK, na której aplikacja została skompilowana.
 
@@ -38,45 +38,16 @@ Aplikacja powinna się uruchomić.
 Aby uruchomić aplikację z kodu źródłowego:
 
 1.  **Sklonuj lub pobierz repozytorium:**
-    ```bash
-    git clone <adres_twojego_repozytorium>
-    cd <nazwa_folderu_projektu>
-    ```
-    (Zastąp `<adres_twojego_repozytorium>` i `<nazwa_folderu_projektu>` odpowiednimi wartościami.)
-
-2.  **Skonfiguruj środowisko (jeśli używasz IDE):**
-    Jeśli używasz IntelliJ IDEA, Eclipse lub podobnego IDE:
-    * Otwórz projekt w swoim IDE.
-    * Upewnij się, że masz skonfigurowany moduł JavaFX. Może być konieczne dodanie zależności JavaFX do Twojego projektu (np. przez Maven/Gradle lub jako moduły JVM).
-
-3.  **Zbuduj projekt:**
-
-    * **Maven:** Jeśli używasz Mavena, możesz zbudować projekt za pomocą komendy:
-        ```bash
-        mvn clean install
-        ```
-    * **Bez narzędzia do budowania (czysta Java):** Jeśli nie używasz Mavena/Gradle, musisz ręcznie skompilować pliki `.java` i uwzględnić zależności JavaFX. Jest to bardziej złożone.
-
-4.  **Uruchom aplikację:**
-
-    * **Z poziomu IDE:** Uruchom klasę `Main.java` jako aplikację Java.
-    * **Z linii komend (po zbudowaniu Jarem z zależnościami):**
-        Jeśli zbudowałeś plik `.jar` (np. `your-project.jar`) zawierający wszystkie zależności, możesz go uruchomić komendą:
-        ```bash
-        java -jar your-project.jar
-        ```
-        Jeśli zależności JavaFX nie są spakowane w Jarze, musisz je dodać do classpath:
-        ```bash
-        java --module-path <ścieżka_do_javafx_libs> --add-modules javafx.controls,javafx.fxml -jar your-project.jar
-        ```
-        Zastąp `<ścieżka_do_javafx_libs>` ścieżką do katalogu `lib` Twojej instalacji JavaFX SDK.
+2.  **Otwórz projekt za pomocą wybranego IDE (w projekcie był używany IntelliJ IDEA)**
+3.  **Wykonaj operację "Build & Run" na klasie Main.java**
+Aplikacja powinna się uruchomić
 
 ## Opis Gry
 
 Symulacja rozgrywa się na kwadratowej mapie, gdzie różne rasy walczą o kontrolę nad terytoriami.
 
 **Główne elementy:**
-* **Rasy:** Dostępne są różne rasy (np. Ludzie, Orkowie), każda z własnymi unikalnymi modyfikatorami siły.
+* **Rasy:** Dostępne są różne rasy (np. Elfy, Orkowie), każda z własnymi unikalnymi modyfikatorami siły.
 * **Mapa:** Składa się z kratek, które mogą być albo pustymi terytoriami do podbicia, albo przeszkodami (nie do zdobycia).
 * **Podbój Terytoriów:** Rasy rozprzestrzeniają się po mapie, podbijając sąsiednie, niezajęte kratki.
 * **Walka:** Gdy dwie rasy spotkają się na tej samej kratce (lub jedna rasa próbuje podbić kratkę zajętą przez inną), dochodzi do walki. Siła rasy jest obliczana na podstawie jednostek (piechota, łucznicy) oraz losowych i specyficznych dla rasy modyfikatorów.
@@ -94,7 +65,7 @@ Główne klasy i ich odpowiedzialności:
 * `SymulacjaUI.java`: Obsługuje interfejs graficzny użytkownika (JavaFX), rysowanie mapy, wyświetlanie statystyk i logów.
 * `Symulacja.java`: Klasa odpowiedzialna za logikę symulacji (zarządzanie turami, podboje, walki, modyfikatory).
 * `RasaBase.java`: Abstrakcyjna klasa bazowa dla wszystkich ras, definiuje wspólne właściwości i metody (np. `sila()`, `silaZBonusem()`).
-* `Ludzie.java`, `Orkowie.java`: Konkretne implementacje ras, nadpisujące metody obliczania siły z uwzględnieniem specyficznych dla rasy bonusów/debuffów od modyfikatorów.
+* `Elfy.java`, `Orkowie.java`: Konkretne implementacje ras, nadpisujące metody obliczania siły z uwzględnieniem specyficznych dla rasy bonusów/debuffów od modyfikatorów.
 * `Kratka.java`: Reprezentuje pojedyncze pole na mapie, przechowuje informację o właścicielu i czy jest przeszkodą.
 * `Przeszkoda.java`: Specjalna klasa `Kratka` reprezentująca niezdobywalną przeszkodę.
 * `Modyfikator.java`: Zarządza losowymi modyfikatorami wpływającymi na siłę ras w danej turze.
@@ -108,5 +79,5 @@ Główne klasy i ich odpowiedzialności:
 
 ## Autor
 
-Jakub Jasiński, Daniel Salasa, Bartosz Cynk
-Kontakt do lidera - jakdotjas@gmail.com lub 284695@student.pwr.edu.pl
+* **Jakub Jasiński, Daniel Salasa, Bartosz Cynk**
+* **Kontakt do lidera - jakdotjas@gmail.com lub 284695@student.pwr.edu.pl**

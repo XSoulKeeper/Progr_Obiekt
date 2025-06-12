@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\Symulator-1.01.jar</jar>
+  <outfile>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\Symulacja.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl></downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\favicon.ico</icon>
+  <jre>
+    <path>%JAVA_HOME%;%PATH%</path>
+    <requiresJdk>false</requiresJdk>
+    <requires64Bit>false</requires64Bit>
+    <minVersion></minVersion>
+    <maxVersion></maxVersion>
+  </jre>
+  <splash>
+    <file>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\logo PWr kolor pion.bmp</file>
+    <waitForWindow>true</waitForWindow>
+    <timeout>20</timeout>
+    <timeoutErr>true</timeoutErr>
+  </splash>
+</launch4jConfig>

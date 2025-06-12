@@ -1,5 +1,3 @@
-
-
 package org.example;
 import java.util.*;
 
@@ -7,8 +5,11 @@ public class Symulacja {
     private Kratka[][] mapa;
     private int rozmiar;
     private int aktualnaTura;
-    private List<RasaBase> rasy;
+    List<RasaBase> rasy;
     private Random random = new Random();
+    public static Modyfikator modyfikator = new Modyfikator();
+    private String ostatniLog = "";
+    public String getOstatniLog() { return ostatniLog; }
 
     public Symulacja(int rozmiar, int aktualnaTura, List<RasaBase> rasy, int procentPrzeszkod) {
         this.rozmiar = rozmiar;
@@ -28,108 +29,174 @@ public class Symulacja {
         }
     }
 
-    public void inicjalizuj() {
-        if (rasy.size() > 0) {
-            int[] start1 = znajdzWolnaKratke(0, 0);
-            mapa[start1[0]][start1[1]].setOwnerRasaId(rasy.get(0).getId());
-        }
-        if (rasy.size() > 1) {
-            int[] start2 = znajdzWolnaKratke(0, rozmiar - 1);
-            mapa[start2[0]][start2[1]].setOwnerRasaId(rasy.get(1).getId());
-        }
-        if (rasy.size() > 2) {
-            int[] start3 = znajdzWolnaKratke(rozmiar - 1, 0);
-            mapa[start3[0]][start3[1]].setOwnerRasaId(rasy.get(2).getId());
-        }
-        if (rasy.size() > 3) {
-            int[] start4 = znajdzWolnaKratke(rozmiar - 1, rozmiar - 1);
-            mapa[start4[0]][start4[1]].setOwnerRasaId(rasy.get(3).getId());
-        }
-    }
+        public List<RasaBase> wylonZwyciezceTeraz() {
+                // Znajdź rasę o największej sile (bazowej)
+                RasaBase najsilniejsza = null;
+                double maxSila = Double.NEGATIVE_INFINITY;
+                for (RasaBase rasa : rasy) {
+                    double sila = rasa.silaZBonusem();
+                    if (sila > maxSila) {
+                        maxSila = sila;
+                        najsilniejsza = rasa;
+                    }
+                }
+                if (najsilniejsza == null) return Collections.emptyList();
 
-    private int[] znajdzWolnaKratke(int x, int y) {
-        Queue<int[]> kolejka = new LinkedList<>();
-        boolean[][] odwiedzone = new boolean[rozmiar][rozmiar];
-        kolejka.add(new int[]{x, y});
-        odwiedzone[x][y] = true;
-
-        while (!kolejka.isEmpty()) {
-            int[] aktualna = kolejka.poll();
-            int cx = aktualna[0];
-            int cy = aktualna[1];
-
-            if (!(mapa[cx][cy] instanceof Przeszkoda)) {
-                return new int[]{cx, cy};
+                // Ustaw właściciela wszystkich pól (nie-przeszkód) na najsilniejszą rasę
+                for (int i = 0; i < rozmiar; i++) {
+                    for (int j = 0; j < rozmiar; j++) {
+                        if (!mapa[i][j].isPrzeszkoda()) {
+                            mapa[i][j].setOwnerRasaId(najsilniejsza.getId());
+                        }
+                    }
+                }
+                // Zwróć zwycięzcę jako jednoelementową listę
+                return Collections.singletonList(najsilniejsza);
             }
 
-            int[][] kierunki = {{-1,0}, {1,0}, {0,-1}, {0,1}};
-            for (int[] d : kierunki) {
-                int nx = cx + d[0];
-                int ny = cy + d[1];
-                if (nx >= 0 && nx < rozmiar && ny >= 0 && ny < rozmiar && !odwiedzone[nx][ny]) {
-                    odwiedzone[nx][ny] = true;
-                    kolejka.add(new int[]{nx, ny});
+    public void inicjalizuj() {
+        int[][] startPositions = {
+                {0, 0},
+                {rozmiar - 1, rozmiar - 1},
+                {0, rozmiar - 1},
+                {rozmiar - 1, 0}
+        };
+
+        for (int i = 0; i < rasy.size(); i++) {
+            RasaBase rasa = rasy.get(i);
+            int startX = startPositions[i][0];
+            int startY = startPositions[i][1];
+
+            int[] actualStartCoords = znajdzWolnaKratkeWokol(startX, startY, 3);
+            if (actualStartCoords[0] != -1 && actualStartCoords[1] != -1) {
+                mapa[actualStartCoords[0]][actualStartCoords[1]].setOwnerRasaId(rasa.getId());
+                rasa.dodajJednostki(rasa.getProdukcja(), rasa.getProdukcja());
+            } else {
+                int[] fallbackCoords = znajdzWolnaKratkeGlobalnie();
+                if (fallbackCoords[0] != -1 && fallbackCoords[1] != -1) {
+                    mapa[fallbackCoords[0]][fallbackCoords[1]].setOwnerRasaId(rasa.getId());
+                    rasa.dodajJednostki(rasa.getProdukcja(), rasa.getProdukcja());
+                } else {
+                    System.err.println("Błąd: Nie można znaleźć miejsca startowego dla rasy " + rasa.getNazwa());
                 }
             }
         }
-
-        return new int[]{x, y};
     }
-    public int policzPrzeszkody(){
-        int licznik = 0;
+
+    private int[] znajdzWolnaKratkeWokol(int centerX, int centerY, int radius) {
+        for (int r = 0; r <= radius; r++) {
+            for (int i = centerX - r; i <= centerX + r; i++) {
+                for (int j = centerY - r; j <= centerY + r; j++) {
+                    if (i >= 0 && i < rozmiar && j >= 0 && j < rozmiar) {
+                        if (!mapa[i][j].isPrzeszkoda() && mapa[i][j].getOwnerRasaId() == -1) {
+                            return new int[]{i, j};
+                        }
+                    }
+                }
+            }
+        }
+        return new int[]{-1, -1};
+    }
+
+    private int[] znajdzWolnaKratkeGlobalnie() {
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
-                if (mapa[i][j] instanceof Przeszkoda) {
-                    licznik++;
+                if (!mapa[i][j].isPrzeszkoda() && mapa[i][j].getOwnerRasaId() == -1) {
+                    return new int[]{i, j};
                 }
             }
         }
-        return licznik;
+        return new int[]{-1, -1};
     }
+
+    public Kratka[][] getMapa() {
+        return mapa;
+    }
+
     public void tura() {
         aktualnaTura++;
 
-        for (RasaBase rasa : rasy) {
-            rasa.dodajJednostki(rasa.getProdukcja(), rasa.getProdukcja());
-        }
+        modyfikator.updateModyfikator();
+        ostatniLog = getBuffDebuffLog();
 
-        Map<Integer, Integer> posiadaneKratkiNaStartTury = new HashMap<>();
+        // Krok 1: Produkcja jednostek
         for (RasaBase rasa : rasy) {
-            posiadaneKratkiNaStartTury.put(rasa.getId(), 0);
-        }
-
-        for (int i = 0; i < rozmiar; i++) {
-            for (int j = 0; j < rozmiar; j++) {
-                int ownerId = mapa[i][j].getOwnerRasaId();
-                if (ownerId != -1) {
-                    posiadaneKratkiNaStartTury.put(ownerId, posiadaneKratkiNaStartTury.get(ownerId) + 1);
+            boolean hasUnits = (rasa.getPiechota() > 0 || rasa.getLucznicy() > 0);
+            boolean hasTerritory = false;
+            for (int i = 0; i < rozmiar; i++) {
+                for (int j = 0; j < rozmiar; j++) {
+                    if (mapa[i][j].getOwnerRasaId() == rasa.getId() && !mapa[i][j].isPrzeszkoda()) {
+                        hasTerritory = true;
+                        break;
+                    }
                 }
+                if (hasTerritory) break;
+            }
+
+            if (hasUnits || hasTerritory) {
+                rasa.dodajJednostki(rasa.getProdukcja(), rasa.getProdukcja());
             }
         }
 
-        Map<Integer, Integer> nowoPrzejeteKratki = new HashMap<>();
+        // Krok 2: Podbój nowych kratek
         for (RasaBase rasa : rasy) {
-            nowoPrzejeteKratki.put(rasa.getId(), 0);
-        }
+            List<Kratka> posiadaneKratki = new ArrayList<>();
+            for (int i = 0; i < rozmiar; i++) {
+                for (int j = 0; j < rozmiar; j++) {
+                    if (mapa[i][j].getOwnerRasaId() == rasa.getId() && !mapa[i][j].isPrzeszkoda()) {
+                        posiadaneKratki.add(mapa[i][j]);
+                    }
+                }
+            }
 
-        for (int i = 0; i < rozmiar; i++) {
-            for (int j = 0; j < rozmiar; j++) {
-                Kratka kratka = mapa[i][j];
-                int owner = kratka.getOwnerRasaId();
+            if (posiadaneKratki.isEmpty() && (rasa.getPiechota() == 0 && rasa.getLucznicy() == 0)) {
+                // Ta rasa nie ma już ani terytorium, ani jednostek. Nie może działać.
+                continue;
+            }
 
-                if (owner != -1) {
-                    RasaBase rasa = znajdzRase(owner);
-                    List<Kratka> sasiednie = znajdzSasiednie(i, j);
+            // Używamy silaZBonusem() do określenia liczby podbojów
+            double podbojeWTurze = (rasa.silaZBonusem() / 1000) + 1;
+            if (podbojeWTurze > rozmiar*3) podbojeWTurze = rozmiar;
+            if (podbojeWTurze == 0) podbojeWTurze = 1;
 
-                    for (Kratka sasiad : sasiednie) {
-                        if (sasiad.getOwnerRasaId() != owner) {
-                            RasaBase obca = znajdzRase(sasiad.getOwnerRasaId());
-                            if (obca == null || rasa.sila() > obca.sila()) {
-                                int limitPrzejec = posiadaneKratkiNaStartTury.get(owner) * 2;
-                                if (nowoPrzejeteKratki.get(owner) < limitPrzejec) {
-                                    sasiad.setOwnerRasaId(owner);
-                                    nowoPrzejeteKratki.put(owner, nowoPrzejeteKratki.get(owner) + 1);
-                                }
+            for (int k = 0; k < podbojeWTurze; k++) {
+                if (posiadaneKratki.isEmpty()) break;
+                Kratka losowaKratkaBazowa = posiadaneKratki.get(random.nextInt(posiadaneKratki.size()));
+                List<Kratka> sasiedzi = znajdzSasiednie(losowaKratkaBazowa.getX(), losowaKratkaBazowa.getY());
+                Collections.shuffle(sasiedzi);
+
+                boolean conquered = false;
+                for (Kratka sasiad : sasiedzi) {
+                    if (sasiad.isPrzeszkoda()) {
+                        continue;
+                    }
+
+                    int sasiadOwnerId = sasiad.getOwnerRasaId();
+                    if (sasiadOwnerId == -1) { // Pusta kratka
+                        sasiad.setOwnerRasaId(rasa.getId());
+                        rasa.dodajJednostki(rasa.getProdukcja() / 2, rasa.getProdukcja() / 2); // Nagroda za podbój pustej
+                        conquered = true;
+                        break;
+                    } else if (sasiadOwnerId != rasa.getId()) { // Kratka przeciwnika
+                        RasaBase przeciwnik = znajdzRase(sasiadOwnerId);
+                        if (przeciwnik != null) {
+                            if (rasa.silaZBonusem() > przeciwnik.silaZBonusem()) {
+                                sasiad.setOwnerRasaId(rasa.getId());
+                                int utraconeJednostkiPiech = (int) (przeciwnik.getPiechota() * 0.2);
+                                int utraconeJednostkiLucz = (int) (przeciwnik.getLucznicy() * 0.2);
+                                przeciwnik.setJednostki(Math.max(0, przeciwnik.getPiechota() - utraconeJednostkiPiech), Math.max(0, przeciwnik.getLucznicy() - utraconeJednostkiLucz));
+
+                                int rasaUtrataPiech = (int) (rasa.getPiechota() * 0.1);
+                                int rasaUtrataLucz = (int) (rasa.getLucznicy() * 0.1);
+                                // Upewnij się, że nie tracimy więcej jednostek, niż mamy
+                                rasaUtrataPiech = Math.min(rasaUtrataPiech, rasa.getPiechota());
+                                rasaUtrataLucz = Math.min(rasaUtrataLucz, rasa.getLucznicy());
+
+                                // Ustaw nowe ilości jednostek dla rasy atakującej
+                                rasa.setJednostki(Math.max(0, rasa.getPiechota() - rasaUtrataPiech), Math.max(0, rasa.getLucznicy() - rasaUtrataLucz));
+
+                                conquered = true;
+                                break;
                             }
                         }
                     }
@@ -139,113 +206,186 @@ public class Symulacja {
     }
 
     public boolean czyKoniec() {
-        if (!czyRasySaPolaczone()) {
-            return true;
-        }
+        // Oblicz liczbę aktywnych ras
+        List<RasaBase> aktywneRasy = new ArrayList<>();
         for (RasaBase rasa : rasy) {
-            if (mozeSieRuszyc(rasa)) {
-                return false;
+            boolean hasTerritory = false;
+            for (int i = 0; i < rozmiar; i++) {
+                for (int j = 0; j < rozmiar; j++) {
+                    if (mapa[i][j].getOwnerRasaId() == rasa.getId() && !mapa[i][j].isPrzeszkoda()) {
+                        hasTerritory = true;
+                        break;
+                    }
+                }
+                if (hasTerritory) break;
+            }
+            boolean hasUnits = (rasa.getPiechota() > 0 || rasa.getLucznicy() > 0);
+
+            if (hasTerritory || hasUnits) {
+                aktywneRasy.add(rasa);
             }
         }
-        return true;
+
+        // Warunek 1: Pozostała jedna aktywna rasa
+        // Jeśli tylko jedna rasa pozostała na mapie z terytorium lub jednostkami, to ona wygrywa.
+        if (aktywneRasy.size() == 1) {
+            return true;
+        }
+
+        // Warunek 2: Żadna rasa nie jest aktywna (wszystkie wyginęły)
+        // Jeśli żadna rasa nie ma terytorium ani jednostek, symulacja się kończy.
+        if (aktywneRasy.isEmpty()) {
+            return true;
+        }
+
+        // Warunek 3: Wszystkie aktywne rasy są "utknięte" (nie mogą się rozszerzać ani walczyć)
+        // To jest przypadek, gdy walka do ostatniego żywego nie jest możliwa,
+        // bo rasy są oddzielone przeszkodami i nie mogą się do siebie dostać.
+        boolean wszystkieAktywneRasyUtkniete = true;
+        for (RasaBase rasa : aktywneRasy) {
+            if (canRasaExpand(rasa.getId())) {
+                wszystkieAktywneRasyUtkniete = false; // Jeśli jakakolwiek rasa może się ruszyć, symulacja trwa
+                break;
+            }
+        }
+
+        return wszystkieAktywneRasyUtkniete;
     }
 
-    private boolean czyRasySaPolaczone() {
-        Set<Integer> znalezioneRasy = new HashSet<>();
-        boolean[][] odwiedzone = new boolean[rozmiar][rozmiar];
+
+    public String getBuffDebuffLog() {
+        StringBuilder sb = new StringBuilder("Tura " + aktualnaTura + ": ");
+        if (getModyfikator().isSwiatlo()) sb.append("Światło rozjaśnia świat, wielbiciele nocy chowają się w cień.");
+        else if (getModyfikator().isMrok()) sb.append("Mrok zapada, wędrujący w cienach zyskują przewagę.");
+        else if (getModyfikator().isZlota()) sb.append("Złoto pobłyskuje, chciwcy rosną w siłę.");
+        else if (getModyfikator().isKrol()) sb.append("Królestwo rośnie w siłę, CHWALMY KRÓLA!");
+        else if (getModyfikator().isSmok()) sb.append("Smok sieje spustoszenie, pożoga ogrania świat.");
+        else sb.append("Brak modyfikatorów.");
+        return sb.toString();
+    }
+
+    // Metoda canRasaExpand() musi zostać zaktualizowana, aby odzwierciedlała nową logikę.
+    private boolean canRasaExpand(int rasaId) {
+        RasaBase checkingRasa = znajdzRase(rasaId);
+        if (checkingRasa == null) return false;
+
+        // Jeśli rasa nie ma jednostek, nie może aktywnie podbijać ani walczyć
+        if (checkingRasa.getPiechota() <= 0 && checkingRasa.getLucznicy() <= 0) {
+            return false;
+        }
 
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
-                if (!odwiedzone[i][j] && !(mapa[i][j] instanceof Przeszkoda)) {
-                    Set<Integer> rasyWTerytorium = new HashSet<>();
-                    Queue<int[]> kolejka = new LinkedList<>();
-                    kolejka.add(new int[]{i, j});
-                    odwiedzone[i][j] = true;
-
-                    while (!kolejka.isEmpty()) {
-                        int[] pos = kolejka.poll();
-                        int x = pos[0], y = pos[1];
-
-                        int owner = mapa[x][y].getOwnerRasaId();
-                        if (owner != -1) {
-                            rasyWTerytorium.add(owner);
+                if (mapa[i][j].getOwnerRasaId() == rasaId && !mapa[i][j].isPrzeszkoda()) {
+                    List<Kratka> sasiednie = znajdzSasiednie(i, j);
+                    for (Kratka sasiad : sasiednie) {
+                        if (sasiad.isPrzeszkoda()) {
+                            continue;
                         }
-
-                        for (int[] d : new int[][]{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}) {
-                            int nx = x + d[0], ny = y + d[1];
-                            if (nx >= 0 && ny >= 0 && nx < rozmiar && ny < rozmiar &&
-                                    !odwiedzone[nx][ny] && !(mapa[nx][ny] instanceof Przeszkoda)) {
-                                odwiedzone[nx][ny] = true;
-                                kolejka.add(new int[]{nx, ny});
+                        if (sasiad.getOwnerRasaId() == -1) { // Może podbić pustą kratkę
+                            return true;
+                        } else if (sasiad.getOwnerRasaId() != rasaId) { // Może zaatakować wroga
+                            RasaBase defendingRasa = znajdzRase(sasiad.getOwnerRasaId());
+                            if (defendingRasa != null) {
+                                // Sprawdź, czy rasa jest w stanie pokonać obrońcę
+                                if (checkingRasa.silaZBonusem() > defendingRasa.silaZBonusem()) {
+                                    return true; // Może rozszerzyć się poprzez walkę
+                                }
+                                // Jeśli siła atakującego jest mniejsza lub równa, nie może podbić tej konkretnej kratki.
+                                // Ale to nie oznacza, że nie może się rozszerzać w ogóle.
+                                // Trzeba sprawdzić, czy może podbić jakąkolwiek inną kratkę.
                             }
                         }
                     }
-
-                    if (rasyWTerytorium.size() > 1) {
-                        return true; // te rasy mogą się spotkać
-                    }
-
-                    znalezioneRasy.addAll(rasyWTerytorium);
                 }
             }
         }
-
-        return false; // żadna grupa nie zawiera więcej niż jednej rasy
+        return false; // Rasa nie może się rozszerzać ani walczyć
     }
 
-    private void bfs(Kratka start, boolean[][] odwiedzone, Set<Integer> osiagnieteRasy) {
-        Queue<Kratka> kolejka = new LinkedList<>();
-        kolejka.add(start);
-        odwiedzone[start.getX()][start.getY()] = true;
-        osiagnieteRasy.add(start.getOwnerRasaId());
 
-        while (!kolejka.isEmpty()) {
-            Kratka curr = kolejka.poll();
+    // Metoda getZwyciezcy() również wymaga aktualizacji, aby odzwierciedlać nową logikę zakończenia.
+    // Zwycięzcą będzie jedyna aktywna rasa. Jeśli jest remis, to wszystkie rasy z remisu.
+    public List<RasaBase> getZwyciezcy() {
+        List<RasaBase> winners = new ArrayList<>();
+        List<RasaBase> activeRaces = new ArrayList<>();
 
-            for (Kratka sasiad : znajdzSasiednie(curr.getX(), curr.getY())) {
-                int x = sasiad.getX();
-                int y = sasiad.getY();
-                if (!odwiedzone[x][y] && !(sasiad instanceof Przeszkoda)) {
-                    odwiedzone[x][y] = true;
-                    kolejka.add(sasiad);
-                    if (sasiad.getOwnerRasaId() != -1) {
-                        osiagnieteRasy.add(sasiad.getOwnerRasaId());
+        // Zbieranie aktywnych ras (mających terytorium LUB jednostki)
+        for (RasaBase rasa : rasy) {
+            boolean hasTerritory = false;
+            for (int i = 0; i < rozmiar; i++) {
+                for (int j = 0; j < rozmiar; j++) {
+                    if (mapa[i][j].getOwnerRasaId() == rasa.getId() && !mapa[i][j].isPrzeszkoda()) {
+                        hasTerritory = true;
+                        break;
                     }
                 }
+                if (hasTerritory) break;
+            }
+            boolean hasUnits = (rasa.getPiechota() > 0 || rasa.getLucznicy() > 0);
+            if (hasTerritory || hasUnits) {
+                activeRaces.add(rasa);
             }
         }
-    }
 
-    private boolean mozeSieRuszyc(RasaBase rasa) {
-        int rasaId = rasa.getId();
+        // Jeśli jest tylko jedna aktywna rasa, ona jest zwycięzcą
+        if (activeRaces.size() == 1) {
+            winners.add(activeRaces.get(0));
+            return winners;
+        }
 
-        for (int i = 0; i < rozmiar; i++) {
-            for (int j = 0; j < rozmiar; j++) {
-                if (mapa[i][j].getOwnerRasaId() == rasaId) {
-                    List<Kratka> sasiednie = znajdzSasiednie(i, j);
-                    for (Kratka sasiad : sasiednie) {
-                        if (sasiad.getOwnerRasaId() != rasaId) {
-                            return true;
-                        }
+        // Jeśli więcej niż jedna rasa nadal jest aktywna, ale wszystkie są "utknięte"
+        // (nie mogą się rozszerzać, ale nie wyginęły), wtedy zwycięzcą jest ta, która ma najwięcej terytorium.
+        // Jeśli jest remis w terytorium, to ta z największą bazową siłą (sila()).
+        if (!activeRaces.isEmpty() && czyKoniec()) { // Upewniamy się, że to jest warunek zakończenia przez "utknięcie"
+            int maxOccupied = -1;
+            Map<Integer, Integer> occupiedCount = new HashMap<>();
+            for (RasaBase r : activeRaces) {
+                occupiedCount.put(r.getId(), 0);
+            }
+
+            for (int i = 0; i < rozmiar; i++) {
+                for (int j = 0; j < rozmiar; j++) {
+                    int ownerId = mapa[i][j].getOwnerRasaId();
+                    if (ownerId != -1 && occupiedCount.containsKey(ownerId)) { // Upewnij się, że ownerId jest wśród aktywnych ras
+                        occupiedCount.put(ownerId, occupiedCount.get(ownerId) + 1);
+                    }
+                }
+            }
+
+            List<RasaBase> potentialWinnersByTerritory = new ArrayList<>();
+            for (RasaBase r : activeRaces) {
+                int currentOccupied = occupiedCount.getOrDefault(r.getId(), 0);
+                if (currentOccupied > maxOccupied) {
+                    maxOccupied = currentOccupied;
+                    potentialWinnersByTerritory.clear();
+                    potentialWinnersByTerritory.add(r);
+                } else if (currentOccupied == maxOccupied && currentOccupied > 0) {
+                    potentialWinnersByTerritory.add(r);
+                }
+            }
+
+            if (potentialWinnersByTerritory.size() == 1) {
+                winners.addAll(potentialWinnersByTerritory);
+            } else { // Remis w terytorium, sprawdzamy siłę bazową
+                double maxStrength = -1;
+                for (RasaBase pw : potentialWinnersByTerritory) {
+                    double currentStrength = pw.sila(); // Używamy sila() bo to statystyka wyświetlana
+                    if (currentStrength > maxStrength) {
+                        maxStrength = currentStrength;
+                        winners.clear();
+                        winners.add(pw);
+                    } else if (currentStrength == maxStrength) {
+                        winners.add(pw);
                     }
                 }
             }
         }
-        return false;
+        // Jeśli wszystkie rasy wyginęły (activeRaces jest puste), to winners pozostanie puste.
+        // To jest poprawna interpretacja "braku zwycięzców".
+        return winners;
     }
 
-    public Set<Integer> getZwyciezcy() {
-        Set<Integer> zwyciezcy = new HashSet<>();
-        for (int i = 0; i < rozmiar; i++) {
-            for (int j = 0; j < rozmiar; j++) {
-                int owner = mapa[i][j].getOwnerRasaId();
-                if (owner != -1) {
-                    zwyciezcy.add(owner);
-                }
-            }
-        }
-        return zwyciezcy;
-    }
 
     private RasaBase znajdzRase(int id) {
         for (RasaBase rasa : rasy) {
@@ -258,9 +398,10 @@ public class Symulacja {
         List<Kratka> lista = new ArrayList<>();
         int[][] kierunki = {{-1,0}, {1,0}, {0,-1}, {0,1}};
 
-        for (int[] d : kierunki) {
-            int nx = x + d[0];
-            int ny = y + d[1];
+        for (int[] kierunek : kierunki) {
+            int nx = x + kierunek[0];
+            int ny = y + kierunek[1];
+
             if (nx >= 0 && nx < rozmiar && ny >= 0 && ny < rozmiar) {
                 lista.add(mapa[nx][ny]);
             }
@@ -268,7 +409,7 @@ public class Symulacja {
         return lista;
     }
 
-    public Kratka[][] getMapa() {
-        return mapa;
+    public static Modyfikator getModyfikator() {
+        return modyfikator;
     }
 }

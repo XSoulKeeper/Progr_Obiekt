@@ -1,4 +1,5 @@
 package org.example;
+
 public abstract class RasaBase {
     protected String nazwa;
     protected int id;
@@ -14,7 +15,16 @@ public abstract class RasaBase {
         this.produkcja = produkcja;
     }
 
-    public abstract int sila();
+    // Zmieniamy to na konkretną metodę, która będzie obliczać bazową siłę
+    public double sila() {
+        // Domyślna implementacja siły, którą można nadpisać w poszczególnych klasach ras,
+        // jeśli ich podstawowa siła jest inna niż standardowa suma jednostek.
+        // Jednak teraz nie będzie abstrakcyjna i będzie reprezentować "czystą" siłę.
+        return piechota + lucznicy; // Przykładowa bazowa siła
+    }
+
+    // Nowa abstrakcyjna metoda do obliczania siły z bonusem losowym
+    public abstract double silaZBonusem();
 
     public int getId() { return id; }
     public String getNazwa() { return nazwa; }

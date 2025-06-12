@@ -108,5 +108,5 @@ Główne klasy i ich odpowiedzialności:
 
 ## Autor
 
-[Twoje Imię/Nazwa Użytkownika]
-[Opcjonalnie: Twój GitHub, LinkedIn lub inna forma kontaktu]
+Jakub Jasiński, Daniel Salasa, Bartosz Cynk
+Kontakt do lidera - jakdotjas@gmail.com lub 284695@student.pwr.edu.pl

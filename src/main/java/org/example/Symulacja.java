@@ -1,6 +1,9 @@
 package org.example;
 import java.util.*;
-
+/**
+ * Główna klasa odpowiedzialna za przeprowadzenie symulacji bitwy między rasami.
+ * Zarządza mapą, rasami, przebiegiem tur i logiką gry.
+ */
 public class Symulacja {
     private Kratka[][] mapa;
     private int rozmiar;
@@ -18,17 +21,22 @@ public class Symulacja {
         this.mapa = new Kratka[rozmiar][rozmiar];
         Random random = new Random();
 
+        // Inicjalizacja mapy - tworzenie przeszkód i pustych pól
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
                 if (random.nextInt(100) < procentPrzeszkod) {
-                    mapa[i][j] = new Przeszkoda(i, j);
+                    mapa[i][j] = new Przeszkoda(i, j);  // Tworzenie przeszkody
                 } else {
-                    mapa[i][j] = new Kratka(i, j);
+                    mapa[i][j] = new Kratka(i, j);      // Tworzenie pustej kratki
                 }
             }
         }
     }
 
+    /**
+     * Natychmiastowo wyłania zwycięzcę na podstawie aktualnej siły ras
+     * @return lista zawierająca najsilniejszą rasę (lub pustą listę jeśli brak ras)
+     */
         public List<RasaBase> wylonZwyciezceTeraz() {
                 // Znajdź rasę o największej sile (bazowej)
                 RasaBase najsilniejsza = null;
@@ -54,6 +62,9 @@ public class Symulacja {
                 return Collections.singletonList(najsilniejsza);
             }
 
+    /**
+     * Inicjalizuje pozycje startowe dla wszystkich ras na mapie
+     */
     public void inicjalizuj() {
         int[][] startPositions = {
                 {0, 0},
@@ -83,11 +94,21 @@ public class Symulacja {
         }
     }
 
+    /**
+     * Znajduje wolną kratkę wokół podanych współrzędnych w określonym promieniu
+     * @param centerX - współrzędna X środka obszaru wyszukiwania
+     * @param centerY - współrzędna Y środka obszaru wyszukiwania
+     * @param radius - promień wyszukiwania
+     * @return tablica [x, y] ze współrzędnymi wolnej kratki lub [-1, -1] jeśli nie znaleziono
+     */
     private int[] znajdzWolnaKratkeWokol(int centerX, int centerY, int radius) {
+        // Przeszukiwanie koncentrycznych okręgów wokół środka
         for (int r = 0; r <= radius; r++) {
             for (int i = centerX - r; i <= centerX + r; i++) {
                 for (int j = centerY - r; j <= centerY + r; j++) {
+                    // Sprawdzenie czy współrzędne są w granicach mapy
                     if (i >= 0 && i < rozmiar && j >= 0 && j < rozmiar) {
+                        // Sprawdzenie czy kratka nie jest przeszkodą i nie ma właściciela
                         if (!mapa[i][j].isPrzeszkoda() && mapa[i][j].getOwnerRasaId() == -1) {
                             return new int[]{i, j};
                         }
@@ -95,9 +116,12 @@ public class Symulacja {
                 }
             }
         }
-        return new int[]{-1, -1};
+        return new int[]{-1, -1}; // Zwróć nieprawidłowe współrzędne jeśli nie znaleziono
     }
-
+    /**
+     * Przeszukuje całą mapę w poszukiwaniu wolnej kratki
+     * @return tablica [x, y] ze współrzędnymi wolnej kratki lub [-1, -1] jeśli nie znaleziono
+     */
     private int[] znajdzWolnaKratkeGlobalnie() {
         for (int i = 0; i < rozmiar; i++) {
             for (int j = 0; j < rozmiar; j++) {
@@ -109,10 +133,16 @@ public class Symulacja {
         return new int[]{-1, -1};
     }
 
+    /**
+     * Zwraca referencję do mapy symulacji
+     * @return dwuwymiarowa tablica kratek
+     */
     public Kratka[][] getMapa() {
         return mapa;
     }
-
+    /**
+     * Przeprowadza jedną turę symulacji
+     */
     public void tura() {
         aktualnaTura++;
 
@@ -204,7 +234,10 @@ public class Symulacja {
             }
         }
     }
-
+    /**
+     * Sprawdza czy symulacja powinna się zakończyć
+     * @return true jeśli symulacja powinna się zakończyć, false w przeciwnym przypadku
+     */
     public boolean czyKoniec() {
         // Oblicz liczbę aktywnych ras
         List<RasaBase> aktywneRasy = new ArrayList<>();
@@ -252,7 +285,10 @@ public class Symulacja {
         return wszystkieAktywneRasyUtkniete;
     }
 
-
+    /**
+     * Generuje komunikat o aktualnym modyfikatorze
+     * @return sformatowany komunikat dla aktualnej tury
+     */
     public String getBuffDebuffLog() {
         StringBuilder sb = new StringBuilder("Tura " + aktualnaTura + ": ");
         if (getModyfikator().isSwiatlo()) sb.append("Światło rozjaśnia świat, wielbiciele nocy chowają się w cień.");
@@ -386,7 +422,11 @@ public class Symulacja {
         return winners;
     }
 
-
+    /**
+     * Znajduje rasę o podanym identyfikatorze
+     * @param id identyfikator rasy do znalezienia
+     * @return obiekt RasaBase lub null jeśli nie znaleziono
+     */
     private RasaBase znajdzRase(int id) {
         for (RasaBase rasa : rasy) {
             if (rasa.getId() == id) return rasa;
@@ -394,6 +434,12 @@ public class Symulacja {
         return null;
     }
 
+    /**
+     * Znajduje sąsiednie kratki dla podanych współrzędnych
+     * @param x współrzędna X kratki
+     * @param y współrzędna Y kratki
+     * @return lista sąsiednich kratek (pomija kratki poza mapą)
+     */
     private List<Kratka> znajdzSasiednie(int x, int y) {
         List<Kratka> lista = new ArrayList<>();
         int[][] kierunki = {{-1,0}, {1,0}, {0,-1}, {0,1}};
@@ -409,6 +455,10 @@ public class Symulacja {
         return lista;
     }
 
+    /**
+     * Zwraca globalny modyfikator symulacji
+     * @return instancja modyfikatora
+     */
     public static Modyfikator getModyfikator() {
         return modyfikator;
     }

@@ -1,5 +1,6 @@
 package org.example;
 
+// Klasa Krasnoludy dziedziczy po klasie bazowej RasaBase i reprezentuje rasę krasnoludów
 public class Krasnoludy extends RasaBase {
     public Krasnoludy(int id, int piechota, int lucznicy, int produkcja) {
         super("Krasnoludy", id, piechota, lucznicy, produkcja);

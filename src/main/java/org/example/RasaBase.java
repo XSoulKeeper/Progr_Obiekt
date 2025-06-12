@@ -1,5 +1,9 @@
 package org.example;
 
+/**
+ * Abstrakcyjna klasa bazowa reprezentująca rasę w symulacji bitwy.
+ * Zawiera podstawowe atrybuty i metody wspólne dla wszystkich ras.
+ */
 public abstract class RasaBase {
     protected String nazwa;
     protected int id;

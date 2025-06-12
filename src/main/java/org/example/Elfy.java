@@ -1,10 +1,12 @@
 package org.example;
 
+// Klasa Elfy dziedziczy po klasie bazowej RasaBase i reprezentuje rasę elfów
 public class Elfy extends RasaBase {
     public Elfy(int id, int piechota, int lucznicy, int produkcja) {
         super("Elfy", id, piechota, lucznicy, produkcja);
     }
 
+    // Przesłonięta metoda obliczająca siłę rasy Elfów
     @Override
     public double sila() { // To jest teraz bazowa siła, bez modyfikatorów losowych
         return (piechota*0.3) * (lucznicy*2.1); // Twoja oryginalna definicja siły

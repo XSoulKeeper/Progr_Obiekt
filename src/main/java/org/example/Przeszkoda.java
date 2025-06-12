@@ -1,5 +1,6 @@
 package org.example;
 
+// Klasa Przeszkoda dziedziczy po klasie Kratka i reprezentuje niezdobywalną przeszkodę na planszy
 public class Przeszkoda extends Kratka {
     public Przeszkoda(int x, int y) {
         super(x, y);

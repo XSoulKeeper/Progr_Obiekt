@@ -17,10 +17,10 @@
   <jre>
     <path>jre</path>
     <requiresJdk>false</requiresJdk>
-    <requires64Bit>false</requires64Bit>
-    <minVersion>21.0.0</minVersion>
+    <requires64Bit>true</requires64Bit>
+    <minVersion></minVersion>
     <maxVersion></maxVersion>
-    <opt>--module-path=&quot;javafx-sdk/lib&quot; --add-modules=javafx.controls,javafx.graphics</opt>
+    <opt>--module-path=&quot;javafx-sdk/lib&quot; --add-modules=javafx.controls,javafx.graphics,javafx.base,javafx.fxml,javafx.media,javafx.web --add-reads javafx.graphics=ALL-UNNAMED --add-reads javafx.controls=ALL-UNNAMED --add-reads javafx.base=ALL-UNNAMED</opt>
   </jre>
   <splash>
     <file>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\logo PWr kolor pion.bmp</file>

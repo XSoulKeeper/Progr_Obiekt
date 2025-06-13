@@ -25,7 +25,10 @@ Istnieją dwie główne metody uruchomienia aplikacji:
 
 ### Z Pliku Wykonywalnego (.exe)
 
-Dwukrotnie kliknij plik `Symulacja.exe`.
+1. Skorzystaj z linku: [POBIERZ MNIE](https://drive.google.com/file/d/1yIXS2YPXuMVvq5VMFxKHGuXVCzlIloy_/view?usp=drive_link)
+2. Pobierz zawartość z Dysku Google
+3. Rozpakuj zawartość w głównym folderze (`Progr_Obiekt-1.03`)
+4. Dwukrotnie kliknij plik `Symulacja.exe`.
 
 Aplikacja powinna się uruchomić.
 
@@ -36,9 +39,10 @@ Aby uruchomić aplikację z kodu źródłowego:
 1.  **Sklonuj lub pobierz repozytorium:**
 2.  **Otwórz projekt za pomocą wybranego IDE (w projekcie był używany IntelliJ IDEA)**
 3.  **Wykonaj operację "Build & Run" na klasie Main.java**
+
 Aplikacja powinna się uruchomić
 
-## Opis Gry
+## Opis
 
 Symulacja rozgrywa się na kwadratowej mapie, gdzie różne rasy walczą o kontrolę nad terytoriami.
 

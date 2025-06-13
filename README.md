@@ -15,10 +15,9 @@ Ten projekt to prosta symulacja podboju terytoriów, w której różne rasy walc
 ## Wymagania
 
 Aby uruchomić aplikację z kodu źródłowego, potrzebujesz:
-* **Java Development Kit (JDK) 11 lub nowszy:** Projekt korzysta z JavaFX, które jest modularne od JDK 11.
+* **Java Development Kit (JDK) 21.0.0 lub nowszy:** Projekt korzysta z JavaFX, które jest modularne od JDK 11.
 * **Gradle:** Jeśli będziesz budować projekt samodzielnie.
 
-Do uruchomienia pliku `.exe` potrzebujesz jedynie środowiska **Java Runtime Environment (JRE)** zgodnego z wersją JDK, na której aplikacja została skompilowana.
 
 ## Uruchamianie Aplikacji
 
@@ -26,18 +25,9 @@ Istnieją dwie główne metody uruchomienia aplikacji:
 
 ### Z Pliku Wykonywalnego (.exe)
 
-Jeśli posiadasz wygenerowany plik `.exe`, po prostu uruchom go:
-
-1.  Przejdź do katalogu, w którym znajduje się plik `Symulacja.exe` (lub inna nazwa, którą nadałeś).
-2.  Dwukrotnie kliknij plik `Symulacja.exe`.
+Dwukrotnie kliknij plik `Symulacja.exe`.
 
 Aplikacja powinna się uruchomić.
-
-Jeśli występuje błąd: `This application requires a Java Runtime Environment`, musisz:
-
-1. Znaleźć folder w którym masz zainstalowaną wersję java na swoim komputerze
-2. Zaktualizować zmienną środowiskową PATH, dodając ścieżkę folderu `bin` zainstalowanej wersji java
-3. Ponowić uruchomienie programu
 
 ### Z Kodu Źródłowego
 

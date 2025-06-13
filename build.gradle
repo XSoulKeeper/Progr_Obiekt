@@ -5,13 +5,13 @@ plugins {
 }
 
 group = 'org.example'
-version = '1.01'
+version = '1.03'
 
 repositories {
     mavenCentral()
 }
 
-def javafxVersion = "22"
+def javafxVersion = "21.0.7"
 
 javafx {
     version = javafxVersion

@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>C:\Users\Jakub\Desktop\Progr_Obiekt-1.01\package-input\Symulator-1.03.jar</jar>
-  <outfile>C:\Users\Jakub\Desktop\Progr_Obiekt-1.01\Symulacja.exe</outfile>
+  <jar>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\Symulator-1.03.jar</jar>
+  <outfile>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\Symulacja.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
@@ -13,16 +13,17 @@
   <stayAlive>false</stayAlive>
   <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
-  <icon>C:\Users\Jakub\Desktop\Progr_Obiekt-1.01\package-input\favicon.ico</icon>
+  <icon>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\favicon.ico</icon>
   <jre>
     <path>jre</path>
     <requiresJdk>false</requiresJdk>
-    <requires64Bit>true</requires64Bit>
+    <requires64Bit>false</requires64Bit>
     <minVersion>21.0.0</minVersion>
     <maxVersion></maxVersion>
+    <opt>--module-path=&quot;javafx-sdk/lib&quot; --add-modules=javafx.controls,javafx.graphics</opt>
   </jre>
   <splash>
-    <file>C:\Users\Jakub\Desktop\Progr_Obiekt-1.01\package-input\logo PWr kolor pion.bmp</file>
+    <file>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\logo PWr kolor pion.bmp</file>
     <waitForWindow>true</waitForWindow>
     <timeout>20</timeout>
     <timeoutErr>true</timeoutErr>

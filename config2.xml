@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>console</headerType>
+  <jar>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\Symulator-1.03.jar</jar>
+  <outfile>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\Symulacja2.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl></downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>C:\Users\Jakub\Desktop\Projekt\Java\Symulator\package-input\favicon.ico</icon>
+  <jre>
+    <path>jre</path>
+    <requiresJdk>false</requiresJdk>
+    <requires64Bit>true</requires64Bit>
+    <minVersion></minVersion>
+    <maxVersion></maxVersion>
+    <opt>--module-path=&quot;javafx-sdk/lib&quot; --add-modules=javafx.controls,javafx.graphics,javafx.base,javafx.fxml,javafx.media,javafx.web --add-reads javafx.graphics=ALL-UNNAMED --add-reads javafx.controls=ALL-UNNAMED --add-reads javafx.base=ALL-UNNAMED</opt>
+  </jre>
+</launch4jConfig>

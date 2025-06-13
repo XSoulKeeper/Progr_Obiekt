@@ -73,7 +73,7 @@ Główne klasy i ich odpowiedzialności:
 
 ## Użyte Technologie
 
-* **Java 11+**
+* **Java 21+**
 * **JavaFX:** Do stworzenia graficznego interfejsu użytkownika.
 * **Launch4j:** Do generowania pliku wykonywalnego `.exe` (opcjonalnie, do dystrybucji).
 
